@@ -1,58 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-
-const featuredProperties = [
-  {
-    number: '01',
-    title: "Merkez'de Lüks Daire",
-    description: 'Aksaray Merkez\'de, 3+1, 140m², asansörlü, otoparklı lüks daire.',
-    image: '/images/property-1.jpg',
-  },
-  {
-    number: '02',
-    title: "Yenidoğan'da Villa",
-    description: "Yenidoğan Mahallesi'nde, 5+2, 300m², bahçeli, müstakil tripleks villa.",
-    image: '/images/property-2.jpg',
-  },
-  {
-    number: '03',
-    title: "Zafer'de Yatırımlık Dükkan",
-    description: "Zafer Mahallesi'nde, 80m², cadde üzeri, yüksek kira getirili dükkan.",
-    image: '/images/property-3.jpg',
-  },
-  {
-    number: '04',
-    title: "Hamidiye'de Arsa",
-    description: "Hamidiye'de, 500m², imarlı, yatırıma uygun arsa.",
-    image: '/images/property-4.jpg',
-  },
-];
-
-const propertyCards = [
-  {
-    title: "Açık Cezaevi Yolu'nda 2+1",
-    location: 'Aksaray Merkez',
-    price: '3.500.000 TL',
-    image: '/images/property-5.jpg',
-  },
-  {
-    title: "Kılıçarslan'da 3+1 Daire",
-    location: 'Kılıçarslan, Aksaray',
-    price: '5.200.000 TL',
-    image: '/images/property-6.jpg',
-  },
-  {
-    title: "Dadaloğlu'nda Kiralık Daire",
-    location: 'Dadaloğlu, Aksaray',
-    price: '12.000 TL/ay',
-    image: '/images/property-7.jpg',
-  },
-];
+import { Link } from 'react-router';
+import { fetchProperties, type Property } from '@/lib/data';
 
 function FeaturedProperty({
   property,
   index,
 }: {
-  property: (typeof featuredProperties)[0];
+  property: Property & { number: string };
   index: number;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
@@ -94,7 +48,7 @@ function FeaturedProperty({
           }}
         >
           <img
-            src={property.image}
+            src={property.image_url}
             alt={property.title}
             className="w-full aspect-[3/2] object-cover hover:scale-105 transition-transform duration-700"
             loading="lazy"
@@ -169,6 +123,17 @@ function FeaturedProperty({
 export default function Properties() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+
+  useEffect(() => {
+    fetchProperties().then(setProperties);
+  }, []);
+
+  const featured = properties
+    .filter((p) => p.featured)
+    .slice(0, 4)
+    .map((p, i) => ({ ...p, number: String(i + 1).padStart(2, '0') }));
+  const others = properties.filter((p) => !p.featured).slice(0, 6);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -222,16 +187,26 @@ export default function Properties() {
 
         {/* Featured Properties */}
         <div className="mb-24">
-          {featuredProperties.map((property, i) => (
-            <FeaturedProperty key={property.number} property={property} index={i} />
+          {featured.map((property, i) => (
+            <FeaturedProperty key={property.id} property={property} index={i} />
           ))}
         </div>
 
         {/* Property Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {propertyCards.map((card, i) => (
-            <PropertyCard key={card.title} card={card} index={i} />
+          {others.map((card, i) => (
+            <PropertyCard key={card.id} card={card} index={i} />
           ))}
+        </div>
+
+        {/* Tüm ilanlar */}
+        <div className="mt-16 text-center">
+          <Link
+            to="/ilanlar"
+            className="inline-block btn-primary"
+          >
+            Tüm İlanları Gör
+          </Link>
         </div>
       </div>
     </section>
@@ -242,7 +217,7 @@ function PropertyCard({
   card,
   index,
 }: {
-  card: (typeof propertyCards)[0];
+  card: Property;
   index: number;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -275,7 +250,7 @@ function PropertyCard({
     >
       <div className="overflow-hidden">
         <img
-          src={card.image}
+          src={card.image_url}
           alt={card.title}
           className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-600"
           loading="lazy"

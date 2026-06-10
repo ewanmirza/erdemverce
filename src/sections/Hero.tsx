@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Home, Menu, X, Phone } from 'lucide-react';
+import { fetchHeroVideoUrl, DEFAULT_VIDEO } from '@/lib/data';
 
 export default function Hero() {
   const [loaderPhase, setLoaderPhase] = useState<'loading' | 'exiting' | 'done'>('loading');
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(DEFAULT_VIDEO);
+
+  useEffect(() => {
+    fetchHeroVideoUrl().then(setVideoUrl);
+  }, []);
 
   useEffect(() => {
     const timer1 = setTimeout(() => setLoaderPhase('exiting'), 1500);
@@ -193,6 +199,7 @@ export default function Hero() {
       >
         {/* Video Background */}
         <video
+          key={videoUrl}
           autoPlay
           muted
           loop
@@ -200,7 +207,7 @@ export default function Hero() {
           className="absolute inset-0 w-full h-full object-cover opacity-40"
           poster="/images/hero-building.jpg"
         >
-          <source src="/videos/hero.mp4" type="video/mp4" />
+          <source src={videoUrl} type="video/mp4" />
         </video>
 
         {/* Gold gradient overlay */}
