@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Home, Menu, X, Phone } from 'lucide-react';
 import { fetchHeroVideoUrl, DEFAULT_VIDEO } from '@/lib/data';
+import { useNavigate } from 'react-router';
 
 export default function Hero() {
   const [loaderPhase, setLoaderPhase] = useState<'loading' | 'exiting' | 'done'>('loading');
@@ -29,8 +30,14 @@ export default function Hero() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navigate = useNavigate();
+
   const scrollTo = (id: string) => {
     setMenuOpen(false);
+    if (id === 'ilanlar-sayfa') {
+      navigate('/ilanlar');
+      return;
+    }
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
@@ -125,7 +132,7 @@ export default function Hero() {
               { label: 'Anasayfa', id: 'hero' },
               { label: 'Hakkımızda', id: 'hakkimizda' },
               { label: 'Hizmetler', id: 'hizmetler' },
-              { label: 'İlanlar', id: 'ilanlar' },
+              { label: 'İlanlar', id: 'ilanlar-sayfa' },
               { label: 'İletişim', id: 'iletisim' },
             ].map((item) => (
               <button
@@ -175,7 +182,7 @@ export default function Hero() {
             { label: 'Anasayfa', id: 'hero' },
             { label: 'Hakkımızda', id: 'hakkimizda' },
             { label: 'Hizmetler', id: 'hizmetler' },
-            { label: 'İlanlar', id: 'ilanlar' },
+            { label: 'İlanlar', id: 'ilanlar-sayfa' },
             { label: 'İletişim', id: 'iletisim' },
           ].map((item, i) => (
             <button

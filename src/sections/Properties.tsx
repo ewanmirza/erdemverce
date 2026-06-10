@@ -104,8 +104,9 @@ function FeaturedProperty({
           {property.description}
         </p>
 
-        <button
-          className="btn-primary mt-6"
+        <Link
+          to={`/ilan/${property.id}`}
+          className="btn-primary mt-6 inline-block"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? 'translateY(0)' : 'translateY(30px)',
@@ -114,7 +115,7 @@ function FeaturedProperty({
           }}
         >
           Detayları Gör
-        </button>
+        </Link>
       </div>
     </div>
   );
@@ -220,7 +221,7 @@ function PropertyCard({
   card: Property;
   index: number;
 }) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -239,9 +240,10 @@ function PropertyCard({
   }, [index]);
 
   return (
-    <div
+    <Link
+      to={`/ilan/${card.id}`}
       ref={cardRef}
-      className="bg-white shadow-card overflow-hidden group cursor-pointer"
+      className="bg-white shadow-card overflow-hidden group cursor-pointer block"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(60px)',
@@ -267,6 +269,6 @@ function PropertyCard({
           {card.price}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

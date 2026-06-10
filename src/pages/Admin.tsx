@@ -10,22 +10,18 @@ import {
   Loader2,
   Video,
   X,
+  Download,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { DEFAULT_VIDEO, type Property } from '@/lib/data';
+import {
+  DEFAULT_VIDEO,
+  CATEGORIES,
+  categoryLabel,
+  fallbackProperties,
+  type Property,
+} from '@/lib/data';
 
 type Tab = 'ilanlar' | 'ayarlar';
-
-interface FormState {
-  id: string | null;
-  title: string;
-  description: string;
-  location: string;
-  price: string;
-  type: 'satilik' | 'kiralik';
-  featured: boolean;
-  image_url: string;
-}
 
 const AKSARAY_MAHALLELERI = [
   'Aksaray Merkez',
@@ -51,6 +47,18 @@ const AKSARAY_MAHALLELERI = [
   'Zafer',
 ];
 
+interface FormState {
+  id: string | null;
+  title: string;
+  description: string;
+  location: string;
+  price: string;
+  type: 'satilik' | 'kiralik';
+  category: string;
+  featured: boolean;
+  images: string[];
+}
+
 const emptyForm: FormState = {
   id: null,
   title: '',
@@ -58,8 +66,9 @@ const emptyForm: FormState = {
   location: '',
   price: '',
   type: 'satilik',
+  category: 'daire',
   featured: false,
-  image_url: '',
+  images: [],
 };
 
 export default function Admin() {
@@ -88,8 +97,8 @@ export default function Admin() {
             Admin panelini kullanmak için Vercel'de (veya yerelde .env
             dosyasında) <code className="text-gold">VITE_SUPABASE_URL</code> ve{' '}
             <code className="text-gold">VITE_SUPABASE_ANON_KEY</code>{' '}
-            değişkenlerini tanımlayın. Detaylar için projedeki KURULUM.md
-            dosyasına bakın.
+            değişkenlerini tanımlayıp Redeploy yapın. Detaylar için projedeki
+            KURULUM.md dosyasına bakın.
           </p>
         </div>
       </Shell>
@@ -169,9 +178,7 @@ function Login() {
           onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
           className="w-full border border-black/15 px-4 py-3 font-body text-sm focus:outline-none focus:border-gold"
         />
-        {error && (
-          <p className="font-body text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="font-body text-sm text-red-600">{error}</p>}
         <button
           onClick={handleLogin}
           disabled={busy}
@@ -230,7 +237,8 @@ function PropertiesAdmin() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState('');
 
   const load = async () => {
@@ -248,26 +256,72 @@ function PropertiesAdmin() {
     load();
   }, []);
 
-  const uploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !supabase || !form) return;
-    setUploadingImage(true);
-    const ext = file.name.split('.').pop();
-    const path = `properties/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('media').upload(path, file);
-    if (!error) {
+  // Sitedeki örnek ilanları veritabanına aktar
+  const importSamples = async () => {
+    if (!supabase) return;
+    setImporting(true);
+    setMessage('');
+    const payload = fallbackProperties.map((p) => ({
+      title: p.title,
+      description: p.description,
+      location: p.location,
+      price: p.price,
+      type: p.type,
+      category: p.category,
+      featured: p.featured,
+      image_url: p.image_url,
+      images: p.images,
+    }));
+    const { error } = await supabase.from('properties').insert(payload);
+    if (error) setMessage('İçe aktarılamadı: ' + error.message);
+    await load();
+    setImporting(false);
+  };
+
+  const uploadImages = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !supabase || !form) return;
+    setUploading(true);
+    setMessage('');
+    const urls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop();
+      const path = `properties/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('media').upload(path, file);
+      if (error) {
+        setMessage(`"${file.name}" yüklenemedi: ${error.message}`);
+        continue;
+      }
       const { data } = supabase.storage.from('media').getPublicUrl(path);
-      setForm({ ...form, image_url: data.publicUrl });
-    } else {
-      setMessage('Görsel yüklenemedi: ' + error.message);
+      urls.push(data.publicUrl);
     }
-    setUploadingImage(false);
+    if (urls.length > 0) {
+      setForm((f) => (f ? { ...f, images: [...f.images, ...urls] } : f));
+    }
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const removeImage = (url: string) => {
+    setForm((f) =>
+      f ? { ...f, images: f.images.filter((i) => i !== url) } : f
+    );
+  };
+
+  const makeCover = (url: string) => {
+    setForm((f) =>
+      f
+        ? { ...f, images: [url, ...f.images.filter((i) => i !== url)] }
+        : f
+    );
   };
 
   const save = async () => {
     if (!supabase || !form) return;
-    if (!form.title || !form.price || !form.image_url) {
-      setMessage('Başlık, fiyat ve görsel zorunludur.');
+    if (!form.title || !form.price || form.images.length === 0) {
+      setMessage('Başlık, fiyat ve en az bir fotoğraf zorunludur.');
       return;
     }
     setSaving(true);
@@ -278,8 +332,10 @@ function PropertiesAdmin() {
       location: form.location,
       price: form.price,
       type: form.type,
+      category: form.category,
       featured: form.featured,
-      image_url: form.image_url,
+      image_url: form.images[0],
+      images: form.images,
     };
     const { error } = form.id
       ? await supabase.from('properties').update(payload).eq('id', form.id)
@@ -311,20 +367,32 @@ function PropertiesAdmin() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="font-display text-2xl text-black">
           İlanlar ({items.length})
         </h2>
-        <button
-          onClick={() => {
-            setMessage('');
-            setForm({ ...emptyForm });
-          }}
-          className="flex items-center gap-2 bg-gold text-black font-body text-sm uppercase tracking-[0.05em] px-5 py-2 hover:bg-black hover:text-white transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Yeni İlan
-        </button>
+        <div className="flex gap-3">
+          {items.length === 0 && !loading && (
+            <button
+              onClick={importSamples}
+              disabled={importing}
+              className="flex items-center gap-2 border border-black/20 text-black font-body text-sm uppercase tracking-[0.05em] px-5 py-2 hover:border-gold transition-colors disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              {importing ? 'Aktarılıyor…' : 'Sitedeki Örnek İlanları Aktar'}
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setMessage('');
+              setForm({ ...emptyForm, images: [] });
+            }}
+            className="flex items-center gap-2 bg-gold text-black font-body text-sm uppercase tracking-[0.05em] px-5 py-2 hover:bg-black hover:text-white transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Yeni İlan
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -369,19 +437,32 @@ function PropertiesAdmin() {
               onChange={(e) => setForm({ ...form, price: e.target.value })}
               className="border border-black/15 px-4 py-3 font-body text-sm focus:outline-none focus:border-gold"
             />
-            <select
-              value={form.type}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  type: e.target.value as 'satilik' | 'kiralik',
-                })
-              }
-              className="border border-black/15 px-4 py-3 font-body text-sm bg-white focus:outline-none focus:border-gold"
-            >
-              <option value="satilik">Satılık</option>
-              <option value="kiralik">Kiralık</option>
-            </select>
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                value={form.type}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    type: e.target.value as 'satilik' | 'kiralik',
+                  })
+                }
+                className="border border-black/15 px-4 py-3 font-body text-sm bg-white focus:outline-none focus:border-gold"
+              >
+                <option value="satilik">Satılık</option>
+                <option value="kiralik">Kiralık</option>
+              </select>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="border border-black/15 px-4 py-3 font-body text-sm bg-white focus:outline-none focus:border-gold"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <textarea
               placeholder="Açıklama (örn. 3+1, 140m², asansörlü…)"
               value={form.description}
@@ -391,41 +472,80 @@ function PropertiesAdmin() {
               rows={3}
               className="md:col-span-2 border border-black/15 px-4 py-3 font-body text-sm focus:outline-none focus:border-gold"
             />
-            <div className="md:col-span-2 flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 font-body text-sm text-black cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={uploadImage}
-                  className="hidden"
-                />
-                <span className="border border-black/20 px-4 py-2 hover:border-gold transition-colors">
-                  {uploadingImage ? 'Yükleniyor…' : 'Görsel Seç'}
-                </span>
-              </label>
-              {form.image_url && (
-                <img
-                  src={form.image_url}
-                  alt="Önizleme"
-                  className="h-16 w-24 object-cover"
-                />
+
+            {/* Fotoğraflar */}
+            <div className="md:col-span-2">
+              <div className="flex flex-wrap items-center gap-4 mb-3">
+                <label className="font-body text-sm text-black cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={uploadImages}
+                    className="hidden"
+                  />
+                  <span className="inline-block border border-black/20 px-4 py-2 hover:border-gold transition-colors">
+                    {uploading ? 'Yükleniyor…' : 'Fotoğraf Seç (birden fazla seçilebilir)'}
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 font-body text-sm text-black cursor-pointer ml-auto">
+                  <input
+                    type="checkbox"
+                    checked={form.featured}
+                    onChange={(e) =>
+                      setForm({ ...form, featured: e.target.checked })
+                    }
+                    className="w-4 h-4 accent-[#b89b5e]"
+                  />
+                  Öne çıkan (anasayfada büyük gösterilir)
+                </label>
+              </div>
+              {form.images.length > 0 && (
+                <>
+                  <div className="flex flex-wrap gap-3">
+                    {form.images.map((url, i) => (
+                      <div key={url} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Fotoğraf ${i + 1}`}
+                          className={`h-20 w-28 object-cover border-2 ${
+                            i === 0 ? 'border-gold' : 'border-transparent'
+                          }`}
+                        />
+                        {i === 0 && (
+                          <span className="absolute bottom-0 left-0 right-0 bg-gold text-black font-body text-[10px] uppercase text-center">
+                            Kapak
+                          </span>
+                        )}
+                        <button
+                          onClick={() => removeImage(url)}
+                          title="Kaldır"
+                          className="absolute -top-2 -right-2 bg-black text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        {i !== 0 && (
+                          <button
+                            onClick={() => makeCover(url)}
+                            className="absolute inset-0 flex items-end justify-center bg-black/0 hover:bg-black/40 text-white font-body text-[10px] uppercase opacity-0 hover:opacity-100 transition-all pb-1"
+                          >
+                            Kapak yap
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="font-body text-xs text-mid-gray mt-2">
+                    İlk fotoğraf kapak olarak kullanılır. Bir fotoğrafa gelip
+                    "Kapak yap" diyerek değiştirebilirsiniz.
+                  </p>
+                </>
               )}
-              <label className="flex items-center gap-2 font-body text-sm text-black cursor-pointer ml-auto">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) =>
-                    setForm({ ...form, featured: e.target.checked })
-                  }
-                  className="w-4 h-4 accent-[#b89b5e]"
-                />
-                Öne çıkan (anasayfada büyük gösterilir)
-              </label>
             </div>
           </div>
           <button
             onClick={save}
-            disabled={saving || uploadingImage}
+            disabled={saving || uploading}
             className="mt-5 bg-black text-white font-body text-sm uppercase tracking-[0.05em] px-8 py-3 hover:bg-gold hover:text-black transition-colors disabled:opacity-50"
           >
             {saving ? 'Kaydediliyor…' : 'Kaydet'}
@@ -438,8 +558,9 @@ function PropertiesAdmin() {
         <p className="font-body text-mid-gray">Yükleniyor…</p>
       ) : items.length === 0 ? (
         <p className="font-body text-mid-gray">
-          Henüz ilan yok. "Yeni İlan" ile ekleyebilirsiniz. (İlan eklenene kadar
-          sitede örnek ilanlar gösterilir.)
+          Henüz ilan yok. "Sitedeki Örnek İlanları Aktar" ile şu an sitede
+          görünen 7 örnek ilanı buraya alabilir, sonra düzenleyebilirsiniz.
+          Veya "Yeni İlan" ile sıfırdan ekleyin.
         </p>
       ) : (
         <div className="space-y-3">
@@ -458,8 +579,11 @@ function PropertiesAdmin() {
                   {p.title}
                 </p>
                 <p className="font-body text-sm text-mid-gray truncate">
-                  {p.location} · {p.price} ·{' '}
+                  {categoryLabel(p.category)} · {p.location} · {p.price} ·{' '}
                   {p.type === 'satilik' ? 'Satılık' : 'Kiralık'}
+                  {Array.isArray(p.images) && p.images.length > 1
+                    ? ` · ${p.images.length} fotoğraf`
+                    : ''}
                 </p>
               </div>
               <button
@@ -478,6 +602,12 @@ function PropertiesAdmin() {
               <button
                 onClick={() => {
                   setMessage('');
+                  const imgs =
+                    Array.isArray(p.images) && p.images.length > 0
+                      ? p.images
+                      : p.image_url
+                      ? [p.image_url]
+                      : [];
                   setForm({
                     id: p.id,
                     title: p.title,
@@ -485,8 +615,9 @@ function PropertiesAdmin() {
                     location: p.location ?? '',
                     price: p.price,
                     type: p.type,
+                    category: p.category ?? 'daire',
                     featured: p.featured,
-                    image_url: p.image_url,
+                    images: imgs,
                   });
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}

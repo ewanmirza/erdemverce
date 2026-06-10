@@ -12,6 +12,8 @@ create table if not exists public.properties (
   price text not null,
   type text not null default 'satilik' check (type in ('satilik', 'kiralik')),
   image_url text not null,
+  images text[] not null default '{}',
+  category text not null default 'daire',
   featured boolean not null default false,
   created_at timestamptz not null default now()
 );

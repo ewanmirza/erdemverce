@@ -38,3 +38,19 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 - Veritabanında hiç ilan yokken sitede örnek (statik) ilanlar gösterilir. İlk ilanı ekledikten sonra gerçek veriler devreye girer.
 - İlan silmek görseli storage'dan silmez; depolama dolmaya başlarsa Supabase > Storage > media içinden eski dosyaları temizleyebilirsiniz (ücretsiz plan 1GB).
 - Şifre sıfırlama gerekirse Supabase Dashboard > Authentication > Users üzerinden yapılır.
+
+
+## 4. Veritabanı güncellemesi (mevcut kurulumlar)
+
+Daha önce `supabase-setup.sql`'i çalıştırdıysanız, çoklu fotoğraf ve kategori desteği için `supabase-update.sql` dosyasını SQL Editor'de bir kez çalıştırın. Yeni kurulum yapıyorsanız gerek yok, `supabase-setup.sql` zaten güncel.
+
+## 5. Google SEO
+
+Kod tarafında yapılanlar: sayfa bazlı başlık/açıklama, anahtar kelimeler (aksaray emlak, erdem emlak, aksaray 1+1 daire vb.), Open Graph etiketleri, Schema.org RealEstateAgent yapısal verisi, robots.txt ve sitemap.xml.
+
+Sizin yapmanız gerekenler:
+
+1. **Alan adını yazın:** `index.html`, `public/robots.txt` ve `public/sitemap.xml` içindeki `SITEADRESINIZ.com` ifadelerini gerçek alan adınızla değiştirin (3 dosyada toplam ~10 yer). Telefon numarasını da (`+90 382 000 00 00`) gerçek numarayla güncelleyin.
+2. **Google Search Console:** https://search.google.com/search-console adresinden siteyi ekleyin (alan adı doğrulaması Keyubu DNS panelinden TXT kaydıyla yapılır). Doğrulama sonrası Sitemaps bölümünden `sitemap.xml` gönderin. Bu, Google'ın siteyi taramasını ciddi hızlandırır.
+3. **Google Business Profile (çok önemli):** https://business.google.com üzerinden "Erdem Emlak" / "Aksaray Emlak" işletme kaydı oluşturun, adres ve telefonu girin, web sitesini bağlayın. "Aksaray emlak" aramalarında haritada çıkmanın yolu budur ve yerel aramalarda web sitesinden daha fazla trafik getirir.
+4. **Gerçekçi beklenti:** "Erdem Emlak" gibi marka aramalarında 1-2 hafta içinde ilk sırada çıkarsınız. "Aksaray emlak", "aksaray 1+1 daire" gibi genel aramalar rekabetlidir (sahibinden, emlakjet, hepsiemlak gibi devler var); ilk sayfaya girmek aylar sürer ve düzenli ilan girişi + Google Business yorumlarıyla desteklenmelidir. İlan başlıklarını arama diline yakın yazmak ("Kılıçarslan'da Satılık 3+1 Daire" gibi) yardımcı olur.
