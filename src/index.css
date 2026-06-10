@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 42 45% 59%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 40 25% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 37 33% 93%;
+    --muted-foreground: 0 0% 35%;
+    --accent: 37 33% 93%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 37 20% 85%;
+    --input: 37 20% 85%;
+    --ring: 42 45% 59%;
+    --radius: 0;
+    --gold: #c9a962;
+    --gold-light: #d4bc7e;
+    --cream: #faf7f0;
+    --charcoal: #1a1a1a;
+    --muted-gold: #8a7a5a;
+    --beige: #e8dfd0;
+    --mid-gray: #5a5a5a;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #000000;
+    text-wrap: pretty;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-body {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .text-gold {
+    color: var(--gold);
+  }
+
+  .bg-gold {
+    background-color: var(--gold);
+  }
+
+  .bg-gold-light {
+    background-color: var(--gold-light);
+  }
+
+  .bg-cream {
+    background-color: var(--cream);
+  }
+
+  .bg-charcoal {
+    background-color: var(--charcoal);
+  }
+
+  .text-muted-gold {
+    color: var(--muted-gold);
+  }
+
+  .bg-beige {
+    background-color: var(--beige);
+  }
+
+  .text-mid-gray {
+    color: var(--mid-gray);
+  }
+
+  .btn-primary {
+    background-color: var(--gold);
+    color: #000000;
+    padding: 14px 32px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--gold-light);
+  }
+
+  .section-padding {
+    padding: 100px 4vw 80px;
+  }
+
+  .content-max-width {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 1s cubic-bezier(0.33, 1, 0.68, 1), transform 1s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  .animate-fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .animate-fade-in {
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .animate-fade-in.visible {
+    opacity: 1;
+  }
+
+  .animate-scale-in {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+  }
+
+  .animate-scale-in.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .stagger-1 { transition-delay: 0.1s; }
+  .stagger-2 { transition-delay: 0.2s; }
+  .stagger-3 { transition-delay: 0.3s; }
+  .stagger-4 { transition-delay: 0.4s; }
+  .stagger-5 { transition-delay: 0.5s; }
+  .stagger-6 { transition-delay: 0.6s; }
+}
+
+/* Loader animation */
+@keyframes stripeMove {
+  from { background-position: 0 0; }
+  to { background-position: 0 135px; }
+}
+
+.loader-stripes {
+  background: repeating-linear-gradient(
+    315deg,
+    transparent,
+    transparent 48px,
+    #c9a962 48px,
+    #c9a962 96px
+  );
+  animation: stripeMove 1.5s ease-in-out infinite;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf7f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9a962;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4bc7e;
+}
