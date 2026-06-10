@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Home, ArrowLeft, MapPin, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
-import { fetchPropertyById, categoryLabel, type Property } from '@/lib/data';
+import { fetchPropertyById, fetchSiteTexts, defaultTexts, phoneDigits, categoryLabel, type Property, type SiteTexts } from '@/lib/data';
 import { setSeo } from '@/lib/seo';
 
 export default function IlanDetay() {
@@ -9,6 +9,11 @@ export default function IlanDetay() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
+
+  useEffect(() => {
+    fetchSiteTexts().then(setTexts);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -167,7 +172,7 @@ export default function IlanDetay() {
                 )}
 
                 <a
-                  href="tel:+903820000000"
+                  href={`tel:+${phoneDigits(texts.phone)}`}
                   className="flex items-center justify-center gap-2 bg-black text-white font-body text-sm uppercase tracking-[0.05em] py-4 px-8 hover:bg-gold hover:text-black transition-colors"
                 >
                   <Phone className="w-4 h-4" />

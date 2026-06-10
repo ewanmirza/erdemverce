@@ -40,6 +40,11 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 - Şifre sıfırlama gerekirse Supabase Dashboard > Authentication > Users üzerinden yapılır.
 
 
+## Yazıları ve görselleri düzenleme
+
+- **Yazılar sekmesi (admin):** Anasayfa büyük başlığı, alt slogan, Hakkımızda başlığı ve metni, telefon, e-posta, adres, Instagram/Facebook linkleri buradan değiştirilir. Telefonu değiştirmek tüm "Bizi Arayın" butonlarını ve WhatsApp linkini de günceller.
+- **Video & Fotoğraf sekmesi (admin):** Hero videosu ve anasayfadaki bina fotoğrafı buradan değiştirilir.
+
 ## 4. Veritabanı güncellemesi (mevcut kurulumlar)
 
 Daha önce `supabase-setup.sql`'i çalıştırdıysanız, çoklu fotoğraf ve kategori desteği için `supabase-update.sql` dosyasını SQL Editor'de bir kez çalıştırın. Yeni kurulum yapıyorsanız gerek yok, `supabase-setup.sql` zaten güncel.

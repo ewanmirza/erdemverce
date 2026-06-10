@@ -173,3 +173,60 @@ export async function fetchHeroVideoUrl(): Promise<string> {
     return DEFAULT_VIDEO;
   }
 }
+
+/* ---------------- Site Metinleri ---------------- */
+
+export interface SiteTexts {
+  hero_line1: string;
+  hero_line2: string;
+  hero_tagline: string;
+  hero_image_url: string;
+  about_title: string;
+  about_text: string;
+  phone: string;
+  email: string;
+  address: string;
+  instagram: string;
+  facebook: string;
+}
+
+export const defaultTexts: SiteTexts = {
+  hero_line1: "AKSARAY'IN",
+  hero_line2: 'PREMİER EMLAK',
+  hero_tagline: "Aksaray'da Güvenilir Emlak Çözümleri",
+  hero_image_url: '/images/hero-building.jpg',
+  about_title: "Aksaray'ın En Güvenilir Emlak Danışmanlığı",
+  about_text:
+    "2008 yılından bu yana Aksaray'da gayrimenkul sektöründe hizmet vermekteyiz. Profesyonel ekibimizle, müşterilerimizin hayallerindeki eve kavuşmalarını sağlıyoruz. Satış, kiralama, değerleme ve danışmanlık alanlarında uzman kadromuzla yanınızdayız.",
+  phone: '+90 382 000 00 00',
+  email: 'info@aksarayemlak.com',
+  address: 'Yeni Sanayi Sitesi, No:15, Merkez/Aksaray',
+  instagram: '',
+  facebook: '',
+};
+
+export function phoneDigits(phone: string): string {
+  return phone.replace(/\D/g, '');
+}
+
+let textsPromise: Promise<SiteTexts> | null = null;
+
+export function fetchSiteTexts(force = false): Promise<SiteTexts> {
+  if (textsPromise && !force) return textsPromise;
+  textsPromise = (async () => {
+    if (!supabase) return defaultTexts;
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'site_texts')
+        .maybeSingle();
+      if (error || !data?.value) return defaultTexts;
+      const parsed = JSON.parse(data.value as string);
+      return { ...defaultTexts, ...parsed } as SiteTexts;
+    } catch {
+      return defaultTexts;
+    }
+  })();
+  return textsPromise;
+}

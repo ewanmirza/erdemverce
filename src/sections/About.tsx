@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { fetchSiteTexts, defaultTexts, type SiteTexts } from '@/lib/data';
 import { Star, Shield, Clock, Users } from 'lucide-react';
 
 const features = [
@@ -26,6 +27,11 @@ const features = [
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
+
+  useEffect(() => {
+    fetchSiteTexts().then(setTexts);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -87,7 +93,7 @@ export default function About() {
                 transitionDelay: '0.1s',
               }}
             >
-              Aksaray'ın En Güvenilir Emlak Danışmanlığı
+              {texts.about_title}
             </h2>
             <p
               className="animate-item font-body text-black/80 mb-10 max-w-xl"
@@ -101,9 +107,7 @@ export default function About() {
                 transitionDelay: '0.2s',
               }}
             >
-              2008 yılından bu yana Aksaray'da gayrimenkul sektöründe hizmet vermekteyiz. 
-              Profesyonel ekibimizle, müşterilerimizin hayallerindeki eve kavuşmalarını sağlıyoruz. 
-              Satış, kiralama, değerleme ve danışmanlık alanlarında uzman kadromuzla yanınızdayız.
+              {texts.about_text}
             </p>
             <button
               onClick={() => scrollTo('iletisim')}

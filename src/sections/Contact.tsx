@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { fetchSiteTexts, defaultTexts, phoneDigits, type SiteTexts } from '@/lib/data';
 import { Facebook, Instagram, Phone, Mail, MapPin, Clock } from 'lucide-react';
 
 export default function Contact() {
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
+
+  useEffect(() => {
+    fetchSiteTexts().then(setTexts);
+  }, []);
   const sectionRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -74,43 +80,47 @@ export default function Contact() {
               </h3>
               <div className="space-y-4">
                 <a
-                  href="tel:+903820000000"
+                  href={`tel:+${phoneDigits(texts.phone)}`}
                   className="flex items-center gap-3 font-body text-base font-light text-white/80 hover:text-gold transition-colors duration-300"
                 >
                   <Phone className="w-5 h-5 text-gold flex-shrink-0" />
-                  +90 382 000 00 00
+                  {texts.phone}
                 </a>
                 <a
-                  href="mailto:info@aksarayemlak.com"
+                  href={`mailto:${texts.email}`}
                   className="flex items-center gap-3 font-body text-base font-light text-white/80 hover:text-gold transition-colors duration-300"
                 >
                   <Mail className="w-5 h-5 text-gold flex-shrink-0" />
-                  info@aksarayemlak.com
+                  {texts.email}
                 </a>
                 <div className="flex items-start gap-3 font-body text-base font-light text-white/80">
                   <MapPin className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
-                  <span>Yeni Sanayi Sitesi, No:15, Merkez/Aksaray</span>
+                  <span>{texts.address}</span>
                 </div>
               </div>
 
               {/* Social Icons */}
               <div className="flex items-center gap-4 mt-8">
                 <a
-                  href="#"
+                  href={texts.facebook || '#'}
+                  target={texts.facebook ? '_blank' : undefined}
+                  rel={texts.facebook ? 'noopener noreferrer' : undefined}
                   className="w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:text-gold hover:border-gold transition-all duration-300"
                   aria-label="Facebook"
                 >
                   <Facebook className="w-5 h-5" />
                 </a>
                 <a
-                  href="#"
+                  href={texts.instagram || '#'}
+                  target={texts.instagram ? '_blank' : undefined}
+                  rel={texts.instagram ? 'noopener noreferrer' : undefined}
                   className="w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:text-gold hover:border-gold transition-all duration-300"
                   aria-label="Instagram"
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a
-                  href="https://wa.me/903820000000"
+                  href={`https://wa.me/${phoneDigits(texts.phone)}`}
                   className="w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:text-gold hover:border-gold transition-all duration-300"
                   aria-label="WhatsApp"
                 >

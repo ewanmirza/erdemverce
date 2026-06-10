@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Home, Menu, X, Phone } from 'lucide-react';
-import { fetchHeroVideoUrl, DEFAULT_VIDEO } from '@/lib/data';
+import { fetchHeroVideoUrl, fetchSiteTexts, defaultTexts, phoneDigits, DEFAULT_VIDEO, type SiteTexts } from '@/lib/data';
 import { useNavigate } from 'react-router';
 
 export default function Hero() {
@@ -8,9 +8,11 @@ export default function Hero() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [videoUrl, setVideoUrl] = useState(DEFAULT_VIDEO);
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
 
   useEffect(() => {
     fetchHeroVideoUrl().then(setVideoUrl);
+    fetchSiteTexts().then(setTexts);
   }, []);
 
   useEffect(() => {
@@ -150,7 +152,7 @@ export default function Hero() {
           {/* CTA + Mobile Menu */}
           <div className="flex items-center gap-4">
             <a
-              href="tel:+903820000000"
+              href={`tel:+${phoneDigits(texts.phone)}`}
               className={`hidden sm:flex items-center gap-2 btn-primary ${
                 scrolled ? '' : 'bg-gold text-black'
               }`}
@@ -212,7 +214,7 @@ export default function Hero() {
           loop
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-40"
-          poster="/images/hero-building.jpg"
+          poster={texts.hero_image_url}
         >
           <source src={videoUrl} type="video/mp4" />
         </video>
@@ -266,8 +268,8 @@ export default function Hero() {
               transitionDelay: '0.3s',
             }}
           >
-            <span className="block">AKSARAY'IN</span>
-            <span className="block mt-2">PREMİER EMLAK</span>
+            <span className="block">{texts.hero_line1}</span>
+            <span className="block mt-2">{texts.hero_line2}</span>
           </h1>
 
           <div
@@ -290,7 +292,7 @@ export default function Hero() {
           style={{ paddingLeft: '4vw', transitionDelay: '1s' }}
         >
           <p className="font-body text-xs font-normal uppercase tracking-[0.1em] text-white/60">
-            Aksaray'da Güvenilir Emlak Çözümleri
+            {texts.hero_tagline}
           </p>
         </div>
 
@@ -302,7 +304,7 @@ export default function Hero() {
           style={{ paddingRight: '4vw', transitionDelay: '0.5s' }}
         >
           <img
-            src="/images/hero-building.jpg"
+            src={texts.hero_image_url}
             alt="Aksaray'da modern konut"
             className="w-full aspect-[3/2] object-cover"
             fetchPriority="high"

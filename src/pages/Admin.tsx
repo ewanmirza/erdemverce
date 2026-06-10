@@ -18,10 +18,13 @@ import {
   CATEGORIES,
   categoryLabel,
   fallbackProperties,
+  defaultTexts,
+  fetchSiteTexts,
   type Property,
+  type SiteTexts,
 } from '@/lib/data';
 
-type Tab = 'ilanlar' | 'ayarlar';
+type Tab = 'ilanlar' | 'yazilar' | 'ayarlar';
 
 const AKSARAY_MAHALLELERI = [
   'Aksaray Merkez',
@@ -201,7 +204,8 @@ function Dashboard() {
           {(
             [
               { key: 'ilanlar', label: 'İlanlar' },
-              { key: 'ayarlar', label: 'Video / Ayarlar' },
+              { key: 'yazilar', label: 'Yazılar' },
+              { key: 'ayarlar', label: 'Video & Fotoğraf' },
             ] as { key: Tab; label: string }[]
           ).map((t) => (
             <button
@@ -225,7 +229,7 @@ function Dashboard() {
           Çıkış
         </button>
       </div>
-      {tab === 'ilanlar' ? <PropertiesAdmin /> : <SettingsAdmin />}
+      {tab === 'ilanlar' ? <PropertiesAdmin /> : tab === 'yazilar' ? <TextsAdmin /> : <SettingsAdmin />}
     </div>
   );
 }
@@ -636,7 +640,117 @@ function PropertiesAdmin() {
   );
 }
 
-/* ---------------- Video / Ayarlar ---------------- */
+/* ---------------- Site Yazıları ---------------- */
+
+function TextsAdmin() {
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    fetchSiteTexts(true).then((t) => {
+      setTexts(t);
+      setLoading(false);
+    });
+  }, []);
+
+  const save = async () => {
+    if (!supabase) return;
+    setSaving(true);
+    setMessage('');
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert({ key: 'site_texts', value: JSON.stringify(texts) });
+    setMessage(
+      error ? 'Kaydedilemedi: ' + error.message : 'Yazılar kaydedildi. Site yenilendiğinde görünür.'
+    );
+    setSaving(false);
+  };
+
+  const field = (
+    label: string,
+    key: keyof SiteTexts,
+    opts?: { textarea?: boolean; placeholder?: string }
+  ) => (
+    <div>
+      <label className="block font-body text-xs uppercase tracking-[0.05em] text-muted-gold mb-1.5">
+        {label}
+      </label>
+      {opts?.textarea ? (
+        <textarea
+          value={texts[key]}
+          rows={4}
+          onChange={(e) => setTexts({ ...texts, [key]: e.target.value })}
+          className="w-full border border-black/15 px-4 py-3 font-body text-sm focus:outline-none focus:border-gold"
+        />
+      ) : (
+        <input
+          value={texts[key]}
+          placeholder={opts?.placeholder}
+          onChange={(e) => setTexts({ ...texts, [key]: e.target.value })}
+          className="w-full border border-black/15 px-4 py-3 font-body text-sm focus:outline-none focus:border-gold"
+        />
+      )}
+    </div>
+  );
+
+  if (loading)
+    return <p className="font-body text-mid-gray">Yükleniyor…</p>;
+
+  return (
+    <div className="max-w-3xl">
+      <h2 className="font-display text-2xl text-black mb-6">Site Yazıları</h2>
+      <div className="bg-white shadow-card p-6 space-y-5">
+        <p className="font-body text-xs uppercase tracking-[0.1em] text-muted-gold border-b border-black/10 pb-2">
+          ANASAYFA BÜYÜK BAŞLIK
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {field('1. Satır', 'hero_line1')}
+          {field('2. Satır', 'hero_line2')}
+        </div>
+        {field('Alt slogan (sol altta)', 'hero_tagline')}
+
+        <p className="font-body text-xs uppercase tracking-[0.1em] text-muted-gold border-b border-black/10 pb-2 pt-3">
+          HAKKIMIZDA BÖLÜMÜ
+        </p>
+        {field('Başlık', 'about_title')}
+        {field('Açıklama metni', 'about_text', { textarea: true })}
+
+        <p className="font-body text-xs uppercase tracking-[0.1em] text-muted-gold border-b border-black/10 pb-2 pt-3">
+          İLETİŞİM BİLGİLERİ
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {field('Telefon', 'phone', { placeholder: '+90 382 000 00 00' })}
+          {field('E-posta', 'email')}
+        </div>
+        {field('Adres', 'address')}
+        <p className="font-body text-xs text-mid-gray -mt-2">
+          Telefon; "Bizi Arayın" butonlarını ve WhatsApp linkini de otomatik günceller.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {field('Instagram linki (opsiyonel)', 'instagram', {
+            placeholder: 'https://instagram.com/...',
+          })}
+          {field('Facebook linki (opsiyonel)', 'facebook', {
+            placeholder: 'https://facebook.com/...',
+          })}
+        </div>
+
+        <button
+          onClick={save}
+          disabled={saving}
+          className="bg-black text-white font-body text-sm uppercase tracking-[0.05em] px-8 py-3 hover:bg-gold hover:text-black transition-colors disabled:opacity-50"
+        >
+          {saving ? 'Kaydediliyor…' : 'Kaydet'}
+        </button>
+        {message && <p className="font-body text-sm text-black">{message}</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Video & Fotoğraf ---------------- */
 
 function SettingsAdmin() {
   const [videoUrl, setVideoUrl] = useState<string>(DEFAULT_VIDEO);
@@ -686,8 +800,44 @@ function SettingsAdmin() {
     setUploading(false);
   };
 
+  const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState('');
+
+  useEffect(() => {
+    fetchSiteTexts(true).then(setTexts);
+  }, []);
+
+  const uploadHeroImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !supabase) return;
+    setUploadingPhoto(true);
+    setPhotoMessage('');
+    const ext = file.name.split('.').pop();
+    const path = `site/hero-building-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('media').upload(path, file);
+    if (error) {
+      setPhotoMessage('Fotoğraf yüklenemedi: ' + error.message);
+      setUploadingPhoto(false);
+      return;
+    }
+    const { data } = supabase.storage.from('media').getPublicUrl(path);
+    const next = { ...texts, hero_image_url: data.publicUrl };
+    const { error: upsertError } = await supabase
+      .from('site_settings')
+      .upsert({ key: 'site_texts', value: JSON.stringify(next) });
+    if (upsertError) {
+      setPhotoMessage('Ayar kaydedilemedi: ' + upsertError.message);
+    } else {
+      setTexts(next);
+      setPhotoMessage('Bina fotoğrafı güncellendi.');
+    }
+    setUploadingPhoto(false);
+  };
+
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl space-y-10">
+      <div>
       <h2 className="font-display text-2xl text-black mb-6">
         Anasayfa Videosu
       </h2>
@@ -718,6 +868,39 @@ function SettingsAdmin() {
         {message && (
           <p className="font-body text-sm text-black mt-3">{message}</p>
         )}
+      </div>
+      </div>
+
+      <div>
+        <h2 className="font-display text-2xl text-black mb-6">
+          Anasayfa Bina Fotoğrafı
+        </h2>
+        <div className="bg-white shadow-card p-6">
+          <img
+            src={texts.hero_image_url}
+            alt="Bina fotoğrafı"
+            className="w-full aspect-[3/2] object-cover bg-black mb-5"
+          />
+          <label className="inline-flex items-center gap-2 font-body text-sm text-black cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={uploadHeroImage}
+              className="hidden"
+            />
+            <span className="flex items-center gap-2 bg-gold text-black font-body text-sm uppercase tracking-[0.05em] px-5 py-3 hover:bg-black hover:text-white transition-colors">
+              {uploadingPhoto ? 'Yükleniyor…' : 'Yeni Fotoğraf Yükle'}
+            </span>
+          </label>
+          <p className="font-body text-xs text-mid-gray mt-4 leading-relaxed">
+            Anasayfanın sağ altındaki bina fotoğrafı ve videonun yüklenmeden
+            önceki kapak görseli olarak kullanılır. Önerilen: yatay (3:2),
+            JPG, 500KB altı.
+          </p>
+          {photoMessage && (
+            <p className="font-body text-sm text-black mt-3">{photoMessage}</p>
+          )}
+        </div>
       </div>
     </div>
   );
