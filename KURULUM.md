@@ -55,7 +55,8 @@ Kod tarafında yapılanlar: sayfa bazlı başlık/açıklama, anahtar kelimeler 
 
 Sizin yapmanız gerekenler:
 
-1. **Alan adını yazın:** `index.html`, `public/robots.txt` ve `public/sitemap.xml` içindeki `SITEADRESINIZ.com` ifadelerini gerçek alan adınızla değiştirin (3 dosyada toplam ~10 yer). Telefon numarasını da (`+90 382 000 00 00`) gerçek numarayla güncelleyin.
+1. **Alan adını yazın:** `index.html` içindeki `SITEADRESINIZ.com` ifadelerini gerçek alan adınızla değiştirin. Telefon numarasını da (`+90 382 000 00 00`) gerçek numarayla güncelleyin. (robots.txt ve sitemap.xml artık otomatik üretiliyor, onlara dokunmanıza gerek yok.)
+   - **Sitemap otomatiktir:** `siteadresi.com/sitemap.xml` her çağrıldığında veritabanındaki TÜM ilanları (`/ilan/...` sayfaları dahil) içerecek şekilde anında üretilir. Yeni ilan eklediğinizde en geç 1 saat içinde sitemap'e otomatik düşer; elle güncelleme gerekmez.
 2. **Google Search Console:** https://search.google.com/search-console adresinden siteyi ekleyin (alan adı doğrulaması Keyubu DNS panelinden TXT kaydıyla yapılır). Doğrulama sonrası Sitemaps bölümünden `sitemap.xml` gönderin. Bu, Google'ın siteyi taramasını ciddi hızlandırır.
 3. **Google Business Profile (çok önemli):** https://business.google.com üzerinden "Erdem Emlak" / "Aksaray Emlak" işletme kaydı oluşturun, adres ve telefonu girin, web sitesini bağlayın. "Aksaray emlak" aramalarında haritada çıkmanın yolu budur ve yerel aramalarda web sitesinden daha fazla trafik getirir.
 4. **Gerçekçi beklenti:** "Erdem Emlak" gibi marka aramalarında 1-2 hafta içinde ilk sırada çıkarsınız. "Aksaray emlak", "aksaray 1+1 daire" gibi genel aramalar rekabetlidir (sahibinden, emlakjet, hepsiemlak gibi devler var); ilk sayfaya girmek aylar sürer ve düzenli ilan girişi + Google Business yorumlarıyla desteklenmelidir. İlan başlıklarını arama diline yakın yazmak ("Kılıçarslan'da Satılık 3+1 Daire" gibi) yardımcı olur.
