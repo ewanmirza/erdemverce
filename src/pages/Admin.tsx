@@ -787,6 +787,9 @@ function TextsAdmin() {
             placeholder: 'https://facebook.com/...',
           })}
         </div>
+        {field('Sahibinden.com mağaza linki (opsiyonel)', 'sahibinden', {
+          placeholder: 'https://erdememlakaksaray.sahibinden.com/',
+        })}
 
         <button
           onClick={save}

@@ -189,6 +189,7 @@ export interface SiteTexts {
   address: string;
   instagram: string;
   facebook: string;
+  sahibinden: string;
 }
 
 export const defaultTexts: SiteTexts = {
@@ -204,6 +205,7 @@ export const defaultTexts: SiteTexts = {
   address: 'Yeni Sanayi Sitesi, No:15, Merkez/Aksaray',
   instagram: '',
   facebook: '',
+  sahibinden: '',
 };
 
 export function phoneDigits(phone: string): string {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchSiteTexts, defaultTexts, phoneDigits, type SiteTexts } from '@/lib/data';
-import { Facebook, Instagram, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { Facebook, Instagram, Store, Phone, Mail, MapPin, Clock } from 'lucide-react';
 
 export default function Contact() {
   const [texts, setTexts] = useState<SiteTexts>(defaultTexts);
@@ -119,6 +119,18 @@ export default function Contact() {
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
+                {texts.sahibinden && (
+                  <a
+                    href={texts.sahibinden}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:text-gold hover:border-gold transition-all duration-300"
+                    aria-label="Sahibinden.com Mağazamız"
+                    title="Sahibinden.com Mağazamız"
+                  >
+                    <Store className="w-5 h-5" />
+                  </a>
+                )}
                 <a
                   href={`https://wa.me/${phoneDigits(texts.phone)}`}
                   className="w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:text-gold hover:border-gold transition-all duration-300"
