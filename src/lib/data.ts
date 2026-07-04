@@ -136,10 +136,11 @@ export async function fetchProperties(): Promise<Property[]> {
       .from('properties')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error || !data) return fallbackProperties;
-    return data.length > 0 ? data.map(normalize) : fallbackProperties;
+    // Hata durumunda sahte ilan gösterme — boş liste dön
+    if (error || !data) return [];
+    return data.map(normalize);
   } catch {
-    return fallbackProperties;
+    return [];
   }
 }
 

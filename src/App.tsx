@@ -8,6 +8,7 @@ import Contact from './sections/Contact'
 import Ilanlar from './pages/Ilanlar'
 import IlanDetay from './pages/IlanDetay'
 import Admin from './pages/Admin'
+import NotFound from './pages/NotFound'
 import { setSeo } from './lib/seo'
 
 function Home() {
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/ilanlar" element={<Ilanlar />} />
       <Route path="/ilan/:id" element={<IlanDetay />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

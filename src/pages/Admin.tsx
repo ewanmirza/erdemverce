@@ -74,6 +74,38 @@ const emptyForm: FormState = {
   images: [],
 };
 
+/** Public URL'den storage yolunu çıkarır (silme işlemleri için). */
+function storagePathFromUrl(url: string): string | null {
+  const marker = '/object/public/media/';
+  const i = url.indexOf(marker);
+  return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length));
+}
+
+/** Görseli yüklemeden önce küçültüp WebP'ye çevirir (maks 1600px, ~%80 kalite). */
+async function compressImage(file: File): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const MAX = 1600;
+    const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/webp', 0.8)
+    );
+    // WebP üretilemezse veya orijinalden büyükse orijinali kullan
+    return blob && blob.size < file.size ? blob : file;
+  } catch {
+    return file;
+  }
+}
+
 export default function Admin() {
   const [session, setSession] = useState<boolean | null>(null);
 
@@ -289,11 +321,16 @@ function PropertiesAdmin() {
     setMessage('');
     const urls: string[] = [];
     for (const file of Array.from(files)) {
-      const ext = file.name.split('.').pop();
+      const compressed = await compressImage(file);
+      const ext = compressed !== file ? 'webp' : file.name.split('.').pop();
       const path = `properties/${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from('media').upload(path, file);
+      const { error } = await supabase.storage
+        .from('media')
+        .upload(path, compressed, {
+          contentType: compressed !== file ? 'image/webp' : file.type,
+        });
       if (error) {
         setMessage(`"${file.name}" yüklenemedi: ${error.message}`);
         continue;
@@ -353,19 +390,31 @@ function PropertiesAdmin() {
     setSaving(false);
   };
 
-  const remove = async (id: string) => {
+  const remove = async (p: Property) => {
     if (!supabase) return;
     if (!confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
-    await supabase.from('properties').delete().eq('id', id);
+    const { error } = await supabase.from('properties').delete().eq('id', p.id);
+    if (error) {
+      setMessage('Silinemedi: ' + error.message);
+      return;
+    }
+    // İlana ait fotoğrafları storage'dan da temizle
+    const paths = (p.images?.length ? p.images : [p.image_url])
+      .map(storagePathFromUrl)
+      .filter((x): x is string => !!x);
+    if (paths.length > 0) {
+      await supabase.storage.from('media').remove(paths);
+    }
     await load();
   };
 
   const toggleFeatured = async (p: Property) => {
     if (!supabase) return;
-    await supabase
+    const { error } = await supabase
       .from('properties')
       .update({ featured: !p.featured })
       .eq('id', p.id);
+    if (error) setMessage('Güncellenemedi: ' + error.message);
     await load();
   };
 
@@ -593,6 +642,7 @@ function PropertiesAdmin() {
               <button
                 onClick={() => toggleFeatured(p)}
                 title="Öne çıkar"
+                aria-label={p.featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
                 className="shrink-0"
               >
                 <Star
@@ -625,11 +675,12 @@ function PropertiesAdmin() {
                   });
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                aria-label="İlanı düzenle"
                 className="shrink-0"
               >
                 <Pencil className="w-5 h-5 text-mid-gray hover:text-black" />
               </button>
-              <button onClick={() => remove(p.id)} className="shrink-0">
+              <button onClick={() => remove(p)} aria-label="İlanı sil" className="shrink-0">
                 <Trash2 className="w-5 h-5 text-mid-gray hover:text-red-600" />
               </button>
             </div>
